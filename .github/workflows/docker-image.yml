@@ -1,4 +1,4 @@
-name: ML Docker Build and Push
+name: Test Build and Push
 
 on:
   push:
@@ -23,14 +23,22 @@ jobs:
     steps:
     - name: Get release version
       id: get_version
-      run: echo "::set-output name=RELEASE_VERSION::$(echo ${GITHUB_REF#refs/*/})"
+      run: echo "::set-output name=RELEASE_VERSION::$(echo ${{ github.ref_name }})"
 
     - uses: actions/checkout@v4
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Run automated tests
+      run:  pytest test_main.py
+
     - name: Build ML Docker image
-      run: docker build -t '${{secrets.DOCKER_LOGIN}}'/test-docker:'${{ steps.get_version.outputs.RELEASE_VERSION }}' .
+      run: docker build -t '${{secrets.DOCKER_LOGIN}}'/test-docker:'${{ RELEASE_VERSION }}' .
 
     - name: Login to docker
       run: docker login -u '${{secrets.DOCKER_LOGIN}}' -p '${{secrets.DOCKER_PASSWORD}}'
 
     - name: Push the docker image
-      run: docker push '${{secrets.DOCKER_LOGIN}}'/test-docker:'${{ steps.get_version.outputs.RELEASE_VERSION }}'
+      run: docker push '${{secrets.DOCKER_LOGIN}}'/test-docker:'${{ RELEASE_VERSION }}'
