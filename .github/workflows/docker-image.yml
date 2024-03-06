@@ -25,7 +25,7 @@ jobs:
       id: get_version
       run: echo "::set-output name=RELEASE_VERSION::$(echo ${GITHUB_REF#refs/*/})"
 
-    # - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
     # - name: Install dependencies
     #   run: |
     #     python -m pip install --upgrade pip
