@@ -1,18 +1,20 @@
-from typing import Union
-from fastapi import FastAPI
+import pytest
+from fastapi import FastAPI, HTTPException
 from model import model_inference
-from time import time
 
 app = FastAPI()
 
-
-
 @app.get("/")
-def read_root():
-    return {"Hello": "World"}
-
+def home():
+    """Home endpoint"""
+    return {"message": "Summarization Model Home"}
 
 @app.post("/summarize")
-def summarize(text: str):
-    summary = model_inference(text)
+async def summarize(data: dict):
+    """Summarize endpoint"""
+    if "text" not in data or not data["text"]:
+        raise HTTPException(status_code=400, detail="Text input cannot be empty")
+    summary = model_inference(data["text"])
+    if not summary:
+        raise HTTPException(status_code=500, detail="Failed to generate summary")
     return {"summary": summary}

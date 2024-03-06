@@ -2,7 +2,17 @@ name: ML Docker Build and Push
 
 on:
   push:
-    branches: [main, releases/**]
+    branches:
+      - main
+      - releases/**
+    tags:
+      - 'v*.*'
+  pull_request:
+    branches:
+      - main
+      - releases/**
+    tags:
+      - 'v*.*'
 
 jobs:
 
@@ -11,12 +21,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Get release version
+      id: get_version
+      run: echo "::set-output name=RELEASE_VERSION::$(echo ${GITHUB_REF#refs/tags/})"
+
     - uses: actions/checkout@v4
     - name: Build ML Docker image
-      run: docker build -t '${{secrets.DOCKER_LOGIN}}'/test-docker:'${{github.sha}}' .
-      
+      run: docker build -t '${{secrets.DOCKER_LOGIN}}'/test-docker:'${{ steps.get_version.outputs.RELEASE_VERSION }}' .
+
+    - name: Run automated tests
+      run: pytest test_main.py
+
     - name: Login to docker
       run: docker login -u '${{secrets.DOCKER_LOGIN}}' -p '${{secrets.DOCKER_PASSWORD}}'
 
     - name: Push the docker image
-      run: docker push '${{secrets.DOCKER_LOGIN}}'/test-docker:'${{github.sha}}'
+      run: docker push '${{secrets.DOCKER_LOGIN}}'/test-docker:'${{ steps.get_version.outputs.RELEASE_VERSION }}'

@@ -3,3 +3,5 @@ transformers==4.38.1
 fastapi==0.110.0
 uvicorn[standard]
 loguru==0.7.2
+pytest
+httpx
